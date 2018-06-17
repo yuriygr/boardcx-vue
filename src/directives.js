@@ -109,4 +109,4 @@ const buildRefmap = {
 	}
 }
 
-export { LinkPreview, CommentPreview, buildRefmap }
+export default { LinkPreview, CommentPreview, buildRefmap }

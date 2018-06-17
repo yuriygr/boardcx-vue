@@ -17,4 +17,4 @@ const ommited = (count) => {
 	return count + ' ' + titles[ (count%100 > 4 && count%100 < 20) ? 2 : cases[Math.min(count%10, 5)] ]
 }
 
-export { timeFormat, ommited }
+export default { timeFormat, ommited }

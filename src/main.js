@@ -3,12 +3,12 @@ import VueBus from 'vue-bus';
 import Meta from 'vue-meta'
 import { sync } from 'vuex-router-sync'
 
-import App from './components/App'
+import App from '@/components/App'
 
-import router from './router'
-import store from './store'
-import * as filters from './filters'
-import * as directives from './directives'
+import router from '@/router'
+import store from '@/store'
+import filters from '@/filters'
+import directives from '@/directives'
 
 // some styles
 import 'reset-css/reset.css'
