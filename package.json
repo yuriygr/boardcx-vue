@@ -1,0 +1,74 @@
+{
+  "name": "boardcx-vue",
+  "version": "1.3.0",
+  "description": "Фронт-энд анонимного форума с само-модерацией на VueJS",
+  "author": "Yuriy Grinev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yuriygr/boardcx-vue.git"
+  },
+  "license": "SEE LICENSE IN LICENSE",
+  "scripts": {
+    "dev": "webpack-dev-server --inline --progress --config build/webpack.dev.conf.js",
+    "start": "npm run dev",
+    "build": "node build/build.js"
+  },
+  "dependencies": {
+    "axios": "^0.16.2",
+    "es6-promise": "^4.2.4",
+    "is-buffer": "^1.1.6",
+    "proxy-polyfill": "^0.2.0",
+    "reset-css": "^2.2.1",
+    "vue": "^2.5.16",
+    "vue-bus": "^1.1.0",
+    "vue-meta": "^1.5.0",
+    "vue-router": "^3.0.1",
+    "vuex": "^3.0.1",
+    "vuex-router-sync": "^5.0.0"
+  },
+  "devDependencies": {
+    "autoprefixer": "^7.2.6",
+    "babel-core": "^6.22.1",
+    "babel-loader": "^7.1.4",
+    "babel-plugin-transform-runtime": "^6.22.0",
+    "babel-preset-env": "^1.3.2",
+    "babel-preset-stage-2": "^6.22.0",
+    "babel-register": "^6.22.0",
+    "chalk": "^2.3.2",
+    "copy-webpack-plugin": "^4.5.1",
+    "css-loader": "^0.28.11",
+    "eventsource-polyfill": "^0.9.6",
+    "extract-text-webpack-plugin": "^3.0.0",
+    "file-loader": "^1.1.11",
+    "friendly-errors-webpack-plugin": "^1.7.0",
+    "html-webpack-plugin": "^2.30.1",
+    "node-notifier": "^5.2.1",
+    "opn": "^5.3.0",
+    "optimize-css-assets-webpack-plugin": "^3.2.0",
+    "ora": "^1.4.0",
+    "portfinder": "^1.0.13",
+    "postcss-import": "^11.1.0",
+    "postcss-loader": "^2.1.3",
+    "rimraf": "^2.6.0",
+    "semver": "^5.5.0",
+    "shelljs": "^0.7.6",
+    "sw-precache-webpack-plugin": "^0.11.5",
+    "url-loader": "^0.5.8",
+    "vue-loader": "^13.7.1",
+    "vue-style-loader": "^3.1.2",
+    "vue-template-compiler": "^2.5.16",
+    "webpack": "^3.11.0",
+    "webpack-bundle-analyzer": "^2.11.1",
+    "webpack-dev-server": "^2.11.2",
+    "webpack-merge": "^4.1.2"
+  },
+  "engines": {
+    "node": ">= 4.0.0",
+    "npm": ">= 3.0.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not ie <= 9"
+  ]
+}
