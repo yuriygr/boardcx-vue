@@ -1,15 +1,15 @@
 import Vue from 'vue'
-import VueRouter from 'vue-router'
+import Router from 'vue-router'
 
-import Topics from './components/Topics'
-import TopicsAdd from './components/TopicsAdd'
-import Page from './components/Page'
-import Gallery from './components/Gallery'
-import Settings from './components/Settings'
-import Bans from './components/Bans'
-import PageError from './components/PageError'
+import Topics from '@/components/Topics'
+import TopicsAdd from '@/components/TopicsAdd'
+import Page from '@/components/Page'
+import Gallery from '@/components/Gallery'
+import Settings from '@/components/Settings'
+import Bans from '@/components/Bans'
+import PageError from '@/components/PageError'
 
-Vue.use(VueRouter)
+Vue.use(Router)
 
 const routes = [
 	{ path: '/', name: 'home', redirect: 'hot' },
@@ -31,7 +31,7 @@ const routes = [
 	{ path: '*', redirect: { name: 'page-error' } }
 ]
 
-const router = new VueRouter({
+const router = new Router({
 	routes,
 	mode: 'history',
 	scrollBehavior (to, from, savedPosition) {
