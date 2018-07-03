@@ -1,7 +1,7 @@
 <template>
-	<main class="content">
-		<div class="container">
-			<h1>Add topic</h1>
+	<section class="content">
+		<h1 class="page__title">Start discussion</h1>
+		<div class="page__content">
 			<form action="/" class="form" @submit.prevent="submit" enctype="multipart/form-data">
 				<div class="form__group form__group--required">
 					<label class="form__label" for="subject">Subject</label>
@@ -14,6 +14,8 @@
 					<textarea v-model="message" id="message" name="message" rows="5" style="resize: vertical;"></textarea>
 					<div class="form__desc">Anymany text here, pleas</div>
 				</div>
+
+				<hr class="form__divide">
 
 				<div class="form__group">
 					<label class="form__label" for="file">File</label>
@@ -57,17 +59,7 @@
 					<div class="form__desc">Just select from 1 to 4 tags by clicking on it</div>
 				</div>
 
-				<div class="form__group form__group--checkbox">
-					<label class="form__label">
-						<input
-							v-model="is_mine"
-							:true-value="1"
-							:false-value="0"
-							name="is_mine"
-							type="checkbox"> This is my post
-					</label>
-					<div class="form__desc">This topic and comments on him will be signed by your fingerprint™</div>
-				</div>
+				<hr class="form__divide">
 
 				<div class="form__group form__group--checkbox">
 					<label class="form__label">
@@ -118,22 +110,23 @@
 				</div>
 			</form>
 		</div>
-	</main>
+	</section>
 </template>
 
 <script>
 	import { mapState } from 'vuex'
+	import api from 'board-api'
 	import BusEvents from 'bus-events'
-	import InputTags from './common/InputTags'
+	import InputTags from '@/components/common/InputTags'
 
 	export default {
-		name: 'topic-add',
+		name: 'topic-new',
 		components: {
 			InputTags
 		},
 		data() {
 			return {
-				titlePage: 'Add topic',
+				titlePage: 'Start a discussion',
 
 				subject: '',
 				message: '',
@@ -142,6 +135,7 @@
 				allow_attach: 1,
 				self_moderation: 0,
 				password: '',
+				via: '',
 
 				attachedFiles: [],
 				thumbsFiles: [],
@@ -189,7 +183,7 @@
 					)
 
 				this.$store.commit('SET_LOADING', true)
-				this.$store.dispatch('SEND_TOPIC', formData)
+				api.topics.add(formData)
 				.then((data) => {
 					this.resetForm()
 					this.$router.push({ name: 'topic', params: { topicId: data.data.id } })
@@ -197,7 +191,6 @@
 					this.$store.commit('SET_LOADING', false)
 				})
 				.catch((error) => {
-					console.log(error)
 					this.$bus.emit(BusEvents.ALERTS_ERROR, error.error_message)
 					this.$store.commit('SET_LOADING', false)
 				})
@@ -279,9 +272,7 @@
 			removeFile(index) {
 				this.attachedFiles.splice(index, 1)
 				this.thumbsFiles.splice(index, 1)
-			},
-
-
+			}
 		}
 	}
 </script>

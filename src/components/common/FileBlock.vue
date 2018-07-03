@@ -8,6 +8,7 @@
 </template>
 
 <script>
+	import settings from 'board-settings'
 	import BusEvents from 'bus-events'
 	import FileModal from './FileModal'
 
@@ -16,7 +17,7 @@
 		props: ['file'],
 		methods: {
 			expandFile(e) {
-				if (e.ctrlKey || e.metaKey)
+				if (e.ctrlKey || e.metaKey || settings.get('open_image_on_window'))
 					return window.open(this.file.origin, '_blank')
 				this.$bus.emit(BusEvents.MODAL_SHOW, FileModal, { file: this.file })
 			}

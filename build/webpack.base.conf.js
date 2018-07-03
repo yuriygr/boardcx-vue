@@ -26,12 +26,14 @@ module.exports = {
       'vue$': 'vue/dist/vue.esm.js',
       '@': resolve('src'),
       'static': resolve('static'),
-      'src': resolve('src'),
       'assets': resolve('src/assets'),
       'components': resolve('src/components'),
-      'utilities': resolve('src/utilities.js'),
-      'create-api': resolve('src/api.js'),
-      'bus-events': resolve('src/bus-events.js')
+      'utilities': resolve('src/services/utilities.js'),
+      'board-api': resolve('src/services/api.js'),
+      'bus-events': resolve('src/services/bus-events.js'),
+      'board-settings': resolve('src/services/settings.js'),
+      'board-moderation': resolve('src/services/moderation.js'),
+      'board-hiding': resolve('src/services/hiding.js')
     }
   },
   module: {

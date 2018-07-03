@@ -9,5 +9,7 @@ export default {
     COMMENTS_PREVIEW:      'comments:preview',
     COMMENTS_HIGHLIGHT:    'comments:highlight',
 
-    MODAL_SHOW:            'modal:show'
+    MODAL_SHOW:            'modal:show',
+
+    LOADING_SET:           'loading:set'
 }

@@ -1,5 +1,4 @@
-import 'es6-promise/auto'
-import { app, store } from './main'
+import { app } from '@/app/main.js'
 
 // actually mount to DOM
 app.$mount('#app')

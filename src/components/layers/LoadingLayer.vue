@@ -8,7 +8,7 @@
 
 <script>
 	export default {
-		name: 'loading',
+		name: 'loading-layer',
 		props: ['show'],
 	}
 </script>

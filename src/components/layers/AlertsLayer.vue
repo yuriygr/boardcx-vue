@@ -47,7 +47,7 @@
 			addAlert(type, text, timeout) {
 				const alert = { type, text }
 				this.alerts.unshift(alert)
-				setTimeout(() => { this.closeAlert(alert) }, timeout || TIMEOUT_DEFAULT)
+				setTimeout(() => { this.closeAlert(alert) }, (timeout || TIMEOUT_DEFAULT))
 			},
 			closeAlert(alert) {
 				const idx = this.alerts.indexOf(alert)
@@ -102,7 +102,5 @@
 	.alerts-list-enter, .alerts-list-leave-to {
 		opacity: 0;
 		transform: translateX(50px);
-	}
-	.alerts-list-leave-active {
 	}
 </style>

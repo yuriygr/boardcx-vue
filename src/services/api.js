@@ -1,3 +1,8 @@
+/**
+ * board-api v1.0.0
+ * (c) 2018 Yuriy Grinev
+ * @license MIT
+ */
 import axios from 'axios'
 
 const instance = axios.create({
@@ -16,7 +21,7 @@ instance.interceptors.response.use(
 	(error) => {
 		return Promise.reject(error.response.data.error)
 	}
-)
+) 
 
 const topics = {
 	list(params) {
@@ -78,9 +83,6 @@ const tags = {
 	},
 	stats() {
 		return instance.get('tags.stats')
-	},
-	find() {
-		return instance.get('tags.find')
 	}
 }
 
@@ -108,13 +110,19 @@ const mod = {
 	}
 }
 
-const oembded = {
-	youtube(params) {
-		return axios.get('https://www.googleapis.com/youtube/v3/videos', { params })
-		.then((data) => {
-			const response = JSON.parse(data)
-			return data.data
-		})
+const bans = {
+	check(formData) {
+		return instance.post('bans.check', formData)
 	}
 }
-export { topics, comments, gallery, pages, tags, mod, oembded }
+
+const settings = {
+	export(settings, key) {
+		return instance.post('settings.export', { settings, key })
+	},
+	import(key) {
+		return instance.post('settings.import', key)
+	}
+}
+
+export default { topics, comments, gallery, pages, tags, mod, bans, settings }

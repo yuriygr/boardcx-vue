@@ -1,23 +1,19 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-
-import * as api from 'create-api'
+import api from 'board-api'
 
 Vue.use(Vuex)
 
 const state = {
 	name: 'board.cx',
-	version: '1.3.0',
+	version: '2.0.3',
 	loading: false,
 
-	settings: JSON.parse(localStorage.getItem('settings')) || {},
-
 	sortList: [
-		{ slug: 'new', label: '✔️ New', description: 'by created time' },
-		{ slug: 'top', label: '🏆 Top' },
-		{ slug: 'hot', label: '🔥 Hot', description: 'by last comment time' },
-		//{ slug: 'best', label: '🥇 Best' },
-		{ slug: 'gallery', label: '🖼 Gallery', description: 'only files' }
+		{ slug: 'new', label: 'New', description: 'by created time' },
+		{ slug: 'top', label: 'Top' },
+		{ slug: 'hot', label: 'Hot', description: 'by last comment time' },
+		{ slug: 'gallery', label: 'Gallery', description: 'oh yes' }
 	],
 
 	// Tags
@@ -40,25 +36,31 @@ const mutations = {
 	SET_LOADING (state, payload) {
 		state.loading = payload
 	},
-	SET_SETTING (state, payload) {
-		state.settings = { ...state.settings, [payload.type]: payload.value }
-	},
-	RESET_SETTINGS (state, payload) {
-		state.settings = {}
-	},
 
 	// Topic
-	SET_TOPICS(state, payload) {
+	SET_TOPICS_LIST(state, payload) {
 		state.topicsList = payload.topics_data
 	},
-	REMOVE_TOPICS(state) {
+	REMOVE_TOPICS_LIST(state) {
 		state.topicsList = false
 	},
-	SET_TOPIC(state, payload) {
+	SET_TOPIC_ACTIVE(state, payload) {
 		state.topicActive = payload.topic_data
 	},
-	REMOVE_TOPIC(state) {
+	REMOVE_TOPIC_ACTIVE(state) {
 		state.topicActive = false
+	},
+	DELETE_TOPIC_ITEM(state, payload) {
+		if (state.topicsList) {
+			state.topicsList.items = state.topicsList.items.filter(e => e.id !== payload.topic_id)
+		}
+	},
+	CLOSE_TOPIC_ITEM(state, payload) {
+		if (state.topicsList) {
+			state.topicsList.items.find(e => e.id === payload.topic_id).isClosed = true
+		} else if (state.topicActive) {
+			state.topicActive.isClosed = true
+		}
 	},
 
 	// Refresh topic
@@ -66,14 +68,17 @@ const mutations = {
 		state.topicActive.comments.push(...payload.comments_data)
 		state.topicActive.countComments = state.topicActive.comments.length
 	},
-	REFRESH_TOPIC_BUMP (state, payload) {
+	CHANGE_TOPIC_BUMP (state, payload) {
 		let last_comment_index = payload.comments_data.length - 1
 		state.topicActive.bump = payload.comments_data[last_comment_index].timestamp
 	},
 
 	// Comments
+	BAN_COMMENT(state, payload) {
+		state.topicActive.comments.find(e => e.id === payload.comment_id).isBanned = true
+	},
 	PIN_COMMENT(state, payload) {
-		console.log(payload)
+		state.topicActive.comments.find(e => e.id === payload.comment_id).isPinned = true
 	},
 	REMOVE_COMMENT(state, payload) {
 		state.topicActive.comments = state.topicActive.comments.filter(e => e.id !== payload.comment_id)
@@ -96,11 +101,19 @@ const mutations = {
 		state.galleryList = false
 	},
 
+	// Tags
+	SET_TAG_ACTIVE(state, payload) {
+		state.tagActive = payload
+	},
+	REMOVE_TAG_ACTIVE(state) {
+		state.tagActive = false
+	},
+
 	// Tags list
-	SET_TAGS(state, payload) {
+	SET_TAGS_LIST(state, payload) {
 		state.tagsList = payload.tags_data
 	},
-	REMOVE_TAGS(state) {
+	REMOVE_TAGS_LIST(state) {
 		state.tagsList = false
 	},
 	HIDE_TAG(state, payload) {
@@ -111,13 +124,6 @@ const mutations = {
 	},
 	RESET_HIDE_TAGS(state) {
 		state.tagsHidden = []
-	},
-
-	SET_TAG_ACTIVE(state, payload) {
-		state.tagActive = payload
-	},
-	REMOVE_TAG_ACTIVE(state) {
-		state.tagActive = false
 	},
 	TOGGLE_TAGS_LIST(state, payload) {
 		if (payload !== undefined)
@@ -137,19 +143,26 @@ const mutations = {
 
 const actions = {
 	// Topics
-	FETCH_TOPICS ({ commit }, [type, tag, except, limit, page] ) {
+	FETCH_TOPICS_LIST ({ commit, state }, [type, tag, except, limit, page] ) {
 		return api.topics.list({ type, tag, except, limit, page })
 		.then((topics_data) => {
-			commit('SET_TOPICS', { topics_data })
-			commit('SET_TAG_ACTIVE', tag)
+			if (state.topicActive)
+				commit('REMOVE_TOPIC_ACTIVE')
+
+			if (tag)
+				commit('SET_TAG_ACTIVE', tag)
+
+			commit('SET_TOPICS_LIST', { topics_data })
 			return topics_data
 		})
 	},
-	FETCH_TOPIC ({ commit }, topic_id) {
+	FETCH_TOPIC_ITEM ({ commit, state }, topic_id) {
 		return api.topics.item({ topic_id })
 		.then((topic_data) => {
-			commit('SET_TOPIC', { topic_data })
-			commit('REMOVE_TAG_ACTIVE')
+			if (state.topicsList)
+				commit('REMOVE_TOPICS_LIST')
+
+			commit('SET_TOPIC_ACTIVE', { topic_data })
 			return topic_data
 		})
 	},
@@ -158,49 +171,15 @@ const actions = {
 		.then((comments_data) => {
 			if (comments_data.length > 0) {
 				commit('REFRESH_TOPIC', { comments_data })
-				commit('REFRESH_TOPIC_BUMP', { comments_data })
+				commit('CHANGE_TOPIC_BUMP', { comments_data })
 			}
 			return comments_data
-		})
-	},
-	SEND_TOPIC ({ commit }, formData) {
-		return api.topics.add(formData)
-		.then((data) => {
-			return data
-		})
-	},
-	REPORT_TOPIC ({ commit }, formData) {
-		return api.topics.report(formData)
-		.then((data) => {
-			return data
-		})
-	},
-	FETCH_TOPIC_LOGS ({ commit }, topic_id) {
-		return api.topics.logs({ topic_id })
-		.then((logs_data) => {
-			return logs_data
 		})
 	},
 	LIKE_TOPIC ({ commit }, topic_id) {
 		return api.topics.like(topic_id)
 		.then((data) => {
 			return data
-		})
-	},
-	PASSWORD_TOPIC ({ commit }, formData) {
-		return api.topics.password(formData)
-		.then((data) => {
-			return data
-		})
-	},
-
-	// Gallery
-	FETCH_GALLERY ({ commit }, [tag, except, limit, page] ) {
-		return api.gallery.list({ tag, except, limit, page })
-		.then((gallery_data) => {
-			commit('SET_GALLERY_LIST', { gallery_data })
-			commit('SET_TAG_ACTIVE', tag)
-			return gallery_data
 		})
 	},
 
@@ -212,14 +191,27 @@ const actions = {
 		})
 	},
 
+	// Gallery
+	FETCH_GALLERY ({ commit }, [tag, except, limit, page] ) {
+		return api.gallery.list({ tag, except, limit, page })
+		.then((gallery_data) => {
+			if (tag)
+				commit('SET_TAG_ACTIVE', tag)
+
+			commit('SET_GALLERY_LIST', { gallery_data })
+			return gallery_data
+		})
+	},
+
 	// Tags
-	FETCH_TAGS ({ commit }) {
+	FETCH_TAGS_LIST ({ commit }) {
 		return api.tags.list()
 		.then((tags_data) => {
-			commit('SET_TAGS', { tags_data })
+			commit('SET_TAGS_LIST', { tags_data })
 			return tags_data
 		})
 	},
+
 
 	// Comments
 	SEND_COMMENT ({ commit }, formData) {
@@ -236,42 +228,51 @@ const actions = {
 	},
 
 	// Modderation
-	MOD_PIN_COMMENT ({ commit }, [formData, comment_id]) {
+	MOD_DELETE_TOPIC({ commit }, formData) {
+		const topic_id = parseInt(formData.get('topic_id'))
+		return api.mod.delete(formData)
+		.then((data) => {
+			commit('DELETE_TOPIC_ITEM', { topic_id })
+			return data
+		})
+	},
+	MOD_CLOSE_TOPIC({ commit }, formData) {
+		const topic_id = parseInt(formData.get('topic_id'))
+		return api.mod.close(formData)
+		.then((data) => {
+			commit('CLOSE_TOPIC_ITEM', { topic_id })
+			return data
+		})
+	},
+	MOD_BAN_COMMENT ({ commit }, formData) {
+		const comment_id = parseInt(formData.get('comment_id'))
+		return api.mod.ban(formData)
+		.then((data) => {
+			commit('BAN_COMMENT', { comment_id })
+			return data
+		})
+	},
+	MOD_PIN_COMMENT ({ commit }, formData) {
+		const comment_id = parseInt(formData.get('comment_id'))
 		return api.mod.pin(formData)
 		.then((data) => {
 			commit('PIN_COMMENT', { comment_id })
 			return data
 		})
 	},
-	MOD_DELETE_COMMENT ({ commit }, [formData, comment_id]) {
+	MOD_DELETE_COMMENT ({ commit }, formData) {
+		const comment_id = parseInt(formData.get('comment_id'))
 		return api.mod.delete(formData)
 		.then((data) => {
 			commit('REMOVE_COMMENT', { comment_id })
 			return data
 		})
-	},
-
-	// Settings
-	UPDATE_SETTING ({ commit }, [type, value] ) {
-		commit('SET_SETTING', { type, value })
 	}
 }
 
 const getters = {
 	getTagActive (state) {
 		return state.tagsList.filter(tag => tag.slug === state.tagActive)[0] || false
-	},
-	settings (state) {
-		return new Proxy(state.settings, {
-			get(target, phrase) {
-				if (phrase in target) {
-					return target[phrase]
-				} else {
-					if (phrase == "theme") return "base"
-					return false
-				}
-			}
-		})
 	}
 }
 
@@ -284,12 +285,6 @@ const store = new Vuex.Store({
 
 // Подпишемся для сохранения в LS
 store.subscribe((mutation, state) => {
-	if (
-		mutation.type === "SET_SETTING" ||
-		mutation.type === "RESET_SETTINGS"
-	) {
-		localStorage.setItem('settings', JSON.stringify(state.settings))
-	}
 	if (
 		mutation.type === "RESET_HIDE_TAGS" ||
 		mutation.type === "HIDE_TAG" ||

@@ -1,48 +1,45 @@
 <template>
-	<main class="content">
-		<div class="container">
-			<hello />
+	<section class="content">
+		<h2 v-if="tagActive">#{{ tagActive }}</h2>
 
-			<pagination
-				:current="galleryList.current"
-				:total="galleryList.total_pages"
-				:before="galleryList.before"
-				:next="galleryList.next" />
+		<pagination
+			:current="galleryList.current"
+			:total="galleryList.total_pages"
+			:before="galleryList.before"
+			:next="galleryList.next" />
 
-			<div class="gallery__container">
-				<template v-if="galleryList">
-					<template v-if="galleryList.items.length > 0">
-						<div class="comment__files">
-							<file-block
-								v-for="(file, index) in galleryList.items"
-								:file="file"
-								:key="index"/>
-						</div>
-					</template>
-					<template v-else>
-						<topic-placeholder :loading="loading" />
-					</template>
+		<div class="gallery__container">
+			<template v-if="galleryList">
+				<template v-if="galleryList.items.length > 0">
+					<div class="comment__files">
+						<file-block
+							v-for="(file, index) in galleryList.items"
+							:file="file"
+							:key="index"/>
+					</div>
 				</template>
-
 				<template v-else>
 					<topic-placeholder :loading="loading" />
 				</template>
-			</div>
+			</template>
+
+			<template v-else>
+				<topic-placeholder :loading="loading" />
+			</template>
 		</div>
-	</main>
+	</section>
 </template>
+
 
 <script>
 	import { mapState } from 'vuex'
-	import Hello from './common/Hello'
-	import FileBlock from './common/FileBlock'
-	import TopicPlaceholder from './common/TopicPlaceholder'
-	import Pagination from './common/Pagination'
+	import FileBlock from '@/components/common/FileBlock'
+	import TopicPlaceholder from '@/components/common/TopicPlaceholder'
+	import Pagination from '@/components/common/Pagination'
 
 	export default {
 		name: 'gallery',
 		components: {
-			Hello,
 			FileBlock,
 			TopicPlaceholder,
 			Pagination
@@ -59,9 +56,9 @@
 		computed: {
 			...mapState([
 				'loading',
-				'sortList',
 				'galleryList',
-				'tagsHidden'
+				'tagsHidden',
+				'tagActive'
 			])
 		},
 		methods: {
@@ -69,9 +66,7 @@
 				this.$store.commit('SET_LOADING', true)
 				this.$store.dispatch('FETCH_GALLERY', [ tag, except, limit, page ])
 				.then(() => {
-					let typeNormal = this.sortList.filter(sort => sort.slug === 'gallery')[0]
-					this.titlePage = typeNormal.label
-
+					this.titlePage = 'Gallery'
 					this.$store.commit('SET_LOADING', false)
 				})
 				.catch((error) => {

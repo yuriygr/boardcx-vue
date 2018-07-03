@@ -1,4 +1,4 @@
-const cancelEvent = (event) => {
+export const cancelEvent = (event) => {
 	event = event || window.event
 	if (event) {
 		event = event.originalEvent || event
@@ -12,7 +12,12 @@ const cancelEvent = (event) => {
 	return false
 }
 
-const pasteHtmlAtCaret = (html, selectPastedContent = false) => {
+export const isObject = (val) => {
+	if (val === null) { return false }
+	return ( (typeof val === 'function') || (typeof val === 'object') )
+}
+
+export const pasteHtmlAtCaret = (html, selectPastedContent = false) => {
 	let sel, range
 	if (window.getSelection) {
 		// IE9 and non-IE
@@ -59,7 +64,7 @@ const pasteHtmlAtCaret = (html, selectPastedContent = false) => {
 	}
 }
 
-const getScrollTopElement = (e) => {
+export const getScrollTopElement = (e) => {
 	let top = 0
 	while (e.offsetParent != undefined || e.offsetParent != null) {
 		top += e.offsetTop + (e.clientTop != null ? e.clientTop : 0)
@@ -68,4 +73,6 @@ const getScrollTopElement = (e) => {
 	return top
 }
 
-export { cancelEvent, pasteHtmlAtCaret, getScrollTopElement }
+export const getKeyByValue = (object, value) => {
+	return Object.keys(object).find(key => object[key] === value)
+}

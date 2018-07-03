@@ -1,29 +1,31 @@
 <template>
-	<ul class="pagination" v-if="total > 1">
-		<li>
-			<router-link
-				class="button"
-				:class="{ 'button--disabled': !hasBefore() }"
-				active-class=""
-				exact-active-class=""
-				:to="{ name: name, query: getQuery(before) }" exact>Before</router-link>
-		</li>
-		<li v-for="(page, index) in total" :key="index">
-			<router-link
-				class="button"
-				active-class="button--action"
-				exact-active-class=""
-				:to="{ name: name, query: getQuery(page) }" exact>{{ page }}</router-link>
-		</li>
-		<li>
-			<router-link
-				class="button"
-				:class="{ 'button--disabled': !hasNext() }"
-				active-class=""
-				exact-active-class=""
-				:to="{ name: name, query: getQuery(next) }" exact>Next</router-link>
-		</li>
-	</ul>
+	<div>
+		<ul class="pagination" v-if="total > 1">
+			<li>
+				<router-link
+					class="button"
+					:class="{ 'button--disabled': !hasBefore() }"
+					active-class=""
+					exact-active-class=""
+					:to="{ name: name, query: getQuery(before) }" exact>Before</router-link>
+			</li>
+			<li v-for="(page, index) in total" :key="index">
+				<router-link
+					class="button"
+					active-class="button--action"
+					exact-active-class=""
+					:to="{ name: name, query: getQuery(page) }" exact>{{ page }}</router-link>
+			</li>
+			<li>
+				<router-link
+					class="button"
+					:class="{ 'button--disabled': !hasNext() }"
+					active-class=""
+					exact-active-class=""
+					:to="{ name: name, query: getQuery(next) }" exact>Next</router-link>
+			</li>
+		</ul>
+	</div>
 </template>
 
 <script>

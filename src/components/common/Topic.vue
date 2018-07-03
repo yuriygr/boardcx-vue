@@ -1,12 +1,66 @@
 <template>
 	<div class="topic-warp">
-		<div class="topic" :class="{'topic--hidden': isHidden }">
+		<div class="topic"
+			:id="'topic-' + topic.id"
+			:class="{
+				'topic--hidden': isHidden,
+				'topic--opened': isOpen,
+				'topic--moderate': canModerate
+			}">
 			<template v-if="!isHidden">
+				<div class="topic__meta">
+					<span class="time" :title="'Last comment time: ' + $options.filters.timeFormat(topic.bump)">
+						{{ topic.timestamp | timeFormat }}
+					</span>
+					<span class="tags" v-if="topic.tags.length > 0">
+						<template  v-for="(tag, index) in topic.tags">
+							<router-link :to="{ name: (!isOpen ? $route.name : 'hot'), query: { tag: tag.slug } }" :key="index">#{{ tag.title }}</router-link><template v-if="index != topic.tags.length - 1">, </template>
+						</template>
+					</span>
+					<span class="options" :class="{ 'options--open': showOptions }" @click="toggleOptionsTopic">
+						<span>&middot;&middot;&middot;</span>
+						<div v-if="showOptions" ref="optionsMenu" class="options-menu">
+							<span class="hide">
+								<a href="#" @click="toggleHideTopic" @click.prevent.stop>Hide</a>
+							</span>
+							<span class="report">
+								<a href="#" @click="reportTopic" @click.prevent.stop>Report</a>
+							</span>
+							<template v-if="topic.selfModeration">
+								<span class="divide"></span>
+								<template v-if="canModerate">
+									<span class="edit">
+										<a href="#" @click="editTopic" @click.prevent.stop>Edit ß</a>
+									</span>
+									<span class="delete">
+										<a href="#" @click="deleteTopic" @click.prevent.stop>Delete</a>
+									</span>
+									<span class="close" v-if="!topic.isClosed">
+										<a href="#" @click="closeTopic" @click.prevent.stop>Close</a>
+									</span>
+									<span class="settings">
+										<a href="#" @click="showSettings" @click.prevent.stop>Settings ß</a>
+									</span>
+									<span class="divide"></span>
+									<span class="reset-password">
+										<a href="#" @click="resetPassword" @click.prevent.stop>Reset password</a>
+									</span>
+								</template>
+								<template v-else>
+									<span class="enter-password">
+										<a href="#" @click="enterPassword" @click.prevent.stop>Enter password</a>
+									</span>
+								</template>
+							</template>
+						</div>
+					</span>
+				</div>
 
-				<h5 class="topic__title" v-if="topic.subject">
-					{{ topic.subject }}
-					<span class="topic__hash" v-if="topic.isMine && !settings.hide_hash">by {{ topic.hash }}</span>
-				</h5>
+				<h4 class="topic__title" v-if="topic.subject">
+					<router-link class="topic__title__link" :to="{ name: 'topic', params: { topicId: topic.id } }">
+						{{ topic.subject }}
+					</router-link>
+				</h4>
 
 				<div class="topic__files u-left" v-if="topic.files.length > 0">
 					<file-block
@@ -15,76 +69,48 @@
 						:key="index" />
 				</div>
 
-				<div class="topic__message" v-link-preview v-comment-preview v-html="topic.message"></div>
+				<div
+					class="topic__message"
+					v-crop-high-text="{
+						'on': isOpen,
+						'height': 150,
+						'class': 'topic__message--cutted'
+					}"
+					v-html="topic.message"></div>
 
 				<div class="u-clearfix"></div>
 
 				<div class="topic__info">
-					<span class="pinned" v-if="topic.isPinned" title="Pinned">📌</span>
-					<span class="locked" v-if="topic.isLocked" title="Locked">🔒</span>
-					<span class="allow_attach" v-if="!topic.allowAttach" title="Without attach">🏳️</span>
-					<span class="self_moderation" v-if="topic.selfModeration" title="Self-moderation">🔐</span>
-					<span class="time" :title="'Last comment time: ' + $options.filters.timeFormat(topic.bump)">
-						{{ topic.timestamp | timeFormat }}
-					</span>
 					<span class="comments" >
-						<router-link v-if="topic.countComments != 0" :to="{ name: 'topic', params: { topicId: topic.id } }">
+						<router-link v-if="topic.countComments != 0" :to="{ name: 'topic', params: { topicId: topic.id }, hash:'#comments' }">
 							{{ topic.countComments | ommited }}
 						</router-link>
-						<router-link v-else :to="{ name: 'topic', params: { topicId: topic.id } }">
+						<router-link v-else :to="{ name: 'topic', params: { topicId: topic.id }, hash:'#comments' }">
 							Discuss
 						</router-link>
 					</span>
 					<span class="views" title="Unique views">{{ topic.countViews }} views</span>
-					<span class="divide" v-if="topic.tags.length > 0">|</span>
-					<span class="tags" v-if="topic.tags.length > 0">
-						<template  v-for="(tag, index) in topic.tags">
-							<router-link :to="{ name: (!isOpen ? $route.name : 'hot'), query: { tag: tag.slug } }" :key="index">#{{ tag.title }}</router-link><template v-if="index != topic.tags.length - 1">, </template>
-						</template>
-					</span>
-					<span class="divide">|</span>
-					<span class="hide">
-						<a href="#" @click="hideTopic" @click.prevent.stop>Hide</a>
-					</span>
-					<span class="report">
-						<a href="#" @click="reportTopic" @click.prevent.stop>Report</a>
+					<span class="state">
+						<template v-if="topic.isPinned">Pinned</template>
+						<template v-if="topic.isClosed">Closed</template>
+						<template v-if="!topic.allowAttach">No attach</template>
+						<template v-if="topic.selfModeration">Self-mod</template>
 					</span>
 				</div>
 			</template>
 			<template v-else>
-				<span>Topic <router-link :to="{ name: 'topic', params: { topicId: topic.id } }" :id="topic.id">«{{ topic.subject }}»</router-link> is hidden. <a href="#" @click="restoreTopic" @click.prevent.stop>Restore</a></span>
+				<span>Topic <b>«{{ topic.subject }}»</b> is hidden. <a href="#" @click="toggleHideTopic" @click.prevent.stop>Restore</a></span>
 			</template>
 		</div>
+
 		<template v-if="isOpen && !isHidden">
-			<slot name="logs" />
+			<slot name="topic-comments" :canModerate="canModerate"/>
 
-			<div class="topic__comments" v-build-refmap>
-				<slot name="comments" slot-scope="props" :canModerate="canModerate" />
-			</div>
-
-			<slot name="form"/>
+			<slot name="topic-form"/>
 
 			<div class="topic__navigation">
 				<a href="#" class="button button--small" @click="back" @click.prevent.stop>Back</a>
 				<a href="#" class="button button--small" @click="refreshTopic" @click.prevent.stop>Refresh</a>
-				<a href="#" class="button button--small" @click="showLogs" @click.prevent.stop>Logs</a>
-				<span class="u-right">
-					<a href="#" class="button button--small" @click="reportTopic" @click.prevent.stop>Report</a>
-					<template v-if="topic.selfModeration">
-						<a v-if="!canModerate" href="#" class="button button--small" @click="enterPassword" @click.prevent.stop>Enter password</a>
-						<a
-							v-else href="#" 
-							class="button button--small"
-							@click="resetPassword"
-							@click.prevent.stop>Reset password</a>
-						<a
-							v-if="canModerate"
-							href="#"
-							class="button button--small"
-							@click="showSettings"
-							@click.prevent.stop>Settings</a>
-					</template>
-				</span>
 			</div>
 		</template>
 	</div>
@@ -92,10 +118,12 @@
 
 <script>
 	import { mapGetters } from 'vuex'
-	import { comments } from 'create-api'
+	import api from 'board-api'
+	import hiding from 'board-hiding'
+	import moderation from 'board-moderation'
 	import BusEvents from 'bus-events'
 	import FileBlock from './FileBlock'
-	import TopicLogs from './TopicLogs'
+	import TopicSettings from './TopicSettings'
 
 	export default {
 		name: 'topic',
@@ -105,38 +133,46 @@
 		props: ['topic', 'isOpen'],
 		data() {
 			return {
-				isHidden: false,
-				canModerate: false
+				isHidden: hiding.hidden({ topic_id: this.topic.id }),
+				canModerate: moderation.can({ topic_id: this.topic.id }),
+
+				showOptions: false
 			}
 		},
-		computed: {
-			...mapGetters([
-				'settings'
-			])
-		},
 		created() {
-			this.isHidden = this.isHiddenTopic()
-			this.canModerate = this.canModerateTopic()
+			document.addEventListener('click', this.documentClick)
 			// Events
 			if (this.isOpen == true) {
 				this.$bus.on(BusEvents.FORM_SUBMIT, () => {
 					this.refreshTopic()
 				})
-				this.$bus.on(BusEvents.COMMENTS_PREVIEW, (data) => {
-					if (data.type == 'mouseover')
-						this.showPost(data)
-					if (data.type == 'mouseout')
-						this.removePost(data)
-				})
 			}
 		},
 		methods: {
-			hideTopic() {
-				this.toggleHideTopic(this.isHidden = true)
+			toggleOptionsTopic() {
+				this.showOptions = !this.showOptions
 			},
-			restoreTopic() {
-				this.toggleHideTopic(this.isHidden = false)
+			documentClick(e) {
+				if (this.showOptions) {
+					let el = this.$refs.optionsMenu
+					if (!el) return false
+					let target = e.target
+					if (( el !== target) && !el.contains(target))
+						this.showOptions = false
+				}
 			},
+			// Hide
+			toggleHideTopic() {
+				if (this.showOptions)
+					this.showOptions = false
+
+				hiding.toggle({
+					topic_id: this.topic.id,
+					hide: this.isHidden ^= true
+				}, _ => {})
+			},
+
+			// Report
 			reportTopic() {
 				let reason = prompt('Enter a reason for report:', '')
 				if (reason == null) return true
@@ -150,7 +186,7 @@
 					formData.append('reason', reason)
 
 				this.$store.commit('SET_LOADING', true)
-				this.$store.dispatch('REPORT_TOPIC', formData)
+				api.topic.report(formData)
 				.then((data) => {
 					this.$bus.emit(BusEvents.ALERTS_SUCCESS, 'Report sent')
 					this.$store.commit('SET_LOADING', false)
@@ -160,6 +196,7 @@
 					this.$store.commit('SET_LOADING', false)
 				})
 			},
+			// Refresh
 			refreshTopic() {
 				let topicId = this.topic.id,
 					afterId = this.topic.comments.length > 0
@@ -181,53 +218,8 @@
 					this.$store.commit('SET_LOADING', false)
 				})
 			},
-			likeTopic() {
-				let topicId = this.topic.id
-
-				this.$store.commit('SET_LOADING', true)
-				this.$store.dispatch('LIKE_TOPIC', topicId)
-				.then((data) => {
-					this.$bus.emit(BusEvents.ALERTS_SUCCESS, data.response.message)
-					this.$store.commit('SET_LOADING', false)
-				})
-				.catch((error) => {
-					this.$bus.emit(BusEvents.ALERTS_ERROR, error.error_message)
-					this.$store.commit('SET_LOADING', false)
-				})
-			},
 			back() {
 				this.$router.go(-1)
-			},
-			showLogs() {
-				let topicId = this.topic.id
-
-				this.$store.commit('SET_LOADING', true)
-				this.$store.dispatch('FETCH_TOPIC_LOGS', topicId)
-				.then((data) => {
-					this.$bus.emit(BusEvents.MODAL_SHOW, TopicLogs, { logs: data })
-					this.$store.commit('SET_LOADING', false)
-				})
-				.catch((error) => {
-					this.$bus.emit(BusEvents.ALERTS_ERROR, error.error_message)
-					this.$store.commit('SET_LOADING', false)
-				})
-			},
-			showSettings() {
-				let topicId = this.topic.id
-				
-				this.$bus.emit(BusEvents.MODAL_SHOW, TopicLogs, { logs: data })
-			},
-			// Hide
-			toggleHideTopic(value) {
-				let list = JSON.parse(localStorage.getItem('hidden.topics')) || []
-				if (value)
-					list.push(this.topic.id)
-				else
-					list = list.filter(e => e !== this.topic.id)
-				localStorage.setItem('hidden.topics', JSON.stringify(list))
-			},
-			isHiddenTopic() {
-				return (JSON.parse(localStorage.getItem('hidden.topics')) || []).indexOf(this.topic.id) != -1
 			},
 
 			// Self-moderation
@@ -244,11 +236,12 @@
 					formData.append('password', password)
 
 				this.$store.commit('SET_LOADING', true)
-				this.$store.dispatch('PASSWORD_TOPIC', formData)
+				api.topics.password(formData)
 				.then((data) => {
-					// Set password on ls
-					this.toggleModerationTopic("add", password)
-					this.$bus.emit(BusEvents.ALERTS_SUCCESS, 'Password correct, enjoy')
+					moderation.add({ topic_id: this.topic.id, password: password }, _ => {
+						this.canModerate = true
+						this.$bus.emit(BusEvents.ALERTS_SUCCESS, 'Password correct, enjoy')
+					})
 					this.$store.commit('SET_LOADING', false)
 				})
 				.catch((error) => {
@@ -257,83 +250,65 @@
 				})
 			},
 			resetPassword() {
-				this.toggleModerationTopic("revoke")
+				moderation.revoke({ topic_id: this.topic.id }, _ => {
+					this.canModerate = false
+					this.$bus.emit(BusEvents.ALERTS_SUCCESS, 'Password revoked, heh')
+				})
 			},
-			toggleModerationTopic(type, password = null) {
-				let list = JSON.parse(localStorage.getItem('mod.topics')) || []
-				if (type == "add")
-					list.push({topicId: this.topic.id, password: password})
-				else
-					list = list.filter(e => e !== this.topic.id)
-				localStorage.setItem('mod.topics', JSON.stringify(list))
+			editTopic() {
+				this.$bus.emit(BusEvents.ALERTS_SUCCESS, 'Puento so adios no')
 			},
-			canModerateTopic() {
-				return true
-				return (JSON.parse(localStorage.getItem('mod.topics')) || []).indexOf(this.topic.id) != -1
-			},
+			deleteTopic() {
+				if (!this.canModerate) return
+ 				if (!confirm(`Delete topic #${this.topic.id}\rAre you shure?`)) return
 
-			/**
-			 * Превью поста. BETA.
-			 * Рассчитывает позиционирование и делает запрос к API
-			 * TODO: не создавать костыльно элемент, а использовать компоненты.
-			 */
-			showPost({ e, type, params }) {
+				let formData = new FormData()
+					formData.append('topic_id', this.topic.id)
+					formData.append('password', moderation.get(
+						{ topic_id: this.topic.id }
+					).password)
 
-				const offset = (el, xy) => {
-					let c = 0;
-					while(el) {
-						c += el[xy];
-						el = el.offsetParent;
-					}
-					return c;
-				}
-
-				comments.item(params)
-				.then((comment_data) => {
-					let x, y,
-						link = e.target,
-						scrW = document.body.clientWidth || document.documentElement.clientWidth,
-						scrH = window.innerHeight || document.documentElement.clientHeight
-
-					// Положение элемента в пространстве
-					x = offset(link, 'offsetLeft') + link.offsetWidth / 2
-					y = offset(link, 'offsetTop')
-
-					if (e.clientY < scrH * 0.75) y += link.offsetHeight
-
-					let comment = document.createElement('div')
-						comment.id = 'preview-' + comment_data.id
-						comment.className = 'comment'
-						comment.style.cssText = ('position:absolute; z-index:300; border:1px solid grey; '
-						+ (x < scrW/2 ? 'left:' + x : 'right:' + parseInt(scrW - x + 2)) + 'px; '
-						+ (e.clientY < scrH*0.75 ? 'top:' + y : 'bottom:' + parseInt(scrH - y - 4)) + 'px')
-
-					let comment_message = document.createElement('div')
-						comment_message.className = 'comment__message'
-						comment_message.innerHTML = comment_data.message
-
-					let comment_info = document.createElement('div')
-						comment_info.className = 'comment__info'
-						comment_info.innerHTML = comment_data.id + '  ' + this.$options.filters.timeFormat(comment_data.timestamp)
-
-						comment.appendChild(comment_message)
-						comment.appendChild(comment_info)
-					document.querySelector('.preview').appendChild(comment)
-
+				this.$store.commit('SET_LOADING', true)
+				this.$store.dispatch('MOD_DELETE_TOPIC', formData)
+				.then((data) => {
+					this.$bus.emit(BusEvents.ALERTS_SUCCESS, 'Topic deleted')
+					this.$store.commit('SET_LOADING', false)
 				})
 				.catch((error) => {
-					console.log(error)
+					this.$bus.emit(BusEvents.ALERTS_ERROR, error.error_message)
+					this.$store.commit('SET_LOADING', false)
 				})
 			},
-			removePost({ e, type, params }) {
-				document.getElementById('preview-' + params.comment_id).remove()
+			closeTopic() {
+				if (!this.canModerate) return
+ 				if (!confirm(`Close topic #${this.topic.id}\rAre you shure?`)) return
+
+				let formData = new FormData()
+					formData.append('topic_id', this.topic.id)
+					formData.append('password', moderation.get(
+						{ topic_id: this.topic.id }
+					).password)
+
+				this.$store.commit('SET_LOADING', true)
+				this.$store.dispatch('MOD_CLOSE_TOPIC', formData)
+				.then((data) => {
+					this.$bus.emit(BusEvents.ALERTS_SUCCESS, 'Topic closed')
+					this.$store.commit('SET_LOADING', false)
+				})
+				.catch((error) => {
+					this.$bus.emit(BusEvents.ALERTS_ERROR, error.error_message)
+					this.$store.commit('SET_LOADING', false)
+				})
+			},
+			showSettings() {
+				this.$bus.emit(BusEvents.MODAL_SHOW, TopicSettings, { topic_id: this.topic.id })
 			}
 		},
 		beforeDestroy() {
+			document.removeEventListener('click', this.documentClick)
 			if (this.isOpen == true) {
 				// Отписались от эвентов
 				this.$bus.off(BusEvents.FORM_SUBMIT)
-				this.$bus.off(BusEvents.COMMENTS_PREVIEW)
 				this.$bus.off(BusEvents.COMMENTS_HIGHLIGHT)
 			}
 		}

@@ -40,7 +40,7 @@
 	import { mapState } from 'vuex'
 
 	export default {
-		name: 'navigation-bar',
+		name: 'app-navigation-bar',
 		computed: {
 			...mapState([
 				'sortList',

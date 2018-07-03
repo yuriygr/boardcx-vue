@@ -1,10 +1,8 @@
 <template>
-	<main class="content">
-		<div class="container">
-			<h1>Error</h1>
-			<div class="page__content" v-html="errorType"></div>
-		</div>
-	</main>
+	<section class="content">
+		<h1 class="page__title">Error</h1>
+		<div class="page__content" v-html="errorType"></div>
+	</section>
 </template>
 
 <script>

@@ -5,15 +5,19 @@ import { sync } from 'vuex-router-sync'
 
 import App from '@/components/App'
 
-import router from '@/router'
-import store from '@/store'
-import filters from '@/filters'
-import directives from '@/directives'
+import router from '@/app/router'
+import store from '@/app/store'
+import filters from '@/app/filters'
+import directives from '@/app/directives'
+import settings from 'board-settings'
+import moderation from 'board-moderation'
+import hiding from 'board-hiding'
 
 // some styles
 import 'reset-css/reset.css'
 import 'assets/style.css'
 
+// register whatever
 Vue.use(VueBus)
 Vue.use(Meta)
 
@@ -33,17 +37,38 @@ sync(store, router)
 
 // Скажем спасибо ЕФГ за идею
 Vue.mixin({
-    mounted() {
-        for (let [ event, callback ] of Object.entries(this.busEvents || {})) {
-            this.$bus.on(event, callback)
-        }
-    },
-    beforeDestroy() {
-        for (let [ event, callback ] of Object.entries(this.busEvents || {})) {
-            this.$bus.off(event, callback)
-        }
-    }
+	mounted() {
+		for (let [ event, callback ] of Object.entries(this.busEvents || {})) {
+			this.$bus.on(event, callback)
+		}
+	},
+	beforeDestroy() {
+		for (let [ event, callback ] of Object.entries(this.busEvents || {})) {
+			this.$bus.off(event, callback)
+		}
+	}
 })
+
+// loading settings from storage
+if (!settings.loaded) {
+	settings.sync('read', _ => {
+		console.info('[status] Settings loaded')
+	})
+}
+
+// loading modaration permissions
+if (!moderation.loaded) {
+	moderation.sync('read', _ => {
+		console.info('[status] Moderator permissions loaded')
+	})
+}
+
+// loading hiding rules
+if (!hiding.loaded) {
+	hiding.sync('read', _ => {
+		console.info('[status] Hiding rules loaded')
+	})
+}
 
 // create the app instance.
 // here we inject the router and store to all child components,

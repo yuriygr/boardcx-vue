@@ -4,6 +4,7 @@
 			v-for="tag in tagsList"
 			:class="[
 				'button button--small',
+				'button--' + tag.slug ,
 				{ 'button--action': isSelecedTag(tag) },
 				{ 'button--disabled': !isSelecedTag(tag) && cantSelectTags }
 			]"

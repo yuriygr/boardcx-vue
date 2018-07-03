@@ -1,5 +1,4 @@
 import { cancelEvent, getScrollTopElement } from 'utilities'
-import { oembded } from 'create-api'
 import BusEvents from 'bus-events'
 
 /**
@@ -20,14 +19,6 @@ const LinkPreview = {
 			// Если не подходит для обработки, то возвращаемся
 			if (!normal) return
 
-			oembded.youtube({
-				id: 'asdasdasd',
-				part: 'snippet',
-				key: 'AIzaSyBw-cmbb0_u5bKx3ekgH9jaFfcN9CTLKD4'
-			})
-			.then((data) => {
-				console.log(data)
-			})
 			let oEmbded = document.createElement('div')
 				oEmbded.className = 'oembded'
 				oEmbded.innerHTML = '<div class="oembded-title"><a href="' + link.href + '">' + link.innerText + '</a></div> \
@@ -87,26 +78,18 @@ const CommentPreview = {
 	}
 }
 
-const buildRefmap = {
+const CropHighText = {
 	bind(el, binding, vnode) {
-		return false
-		let links = el.querySelectorAll('a[data-comment-preview]'),
-			refmap = []
-
-		outer: for (let j = 0; j < links.length; j++) {
-			let link = links[j],
-				data = link.getAttribute('data-comment-preview').split('|'),
-				params = {
-					from: link.closest('.comment').id, // кто
-					topic_id: data[0],
-					comment_id: data[1] // кому
-				}
-
-			refmap[params.comment_id] = (refmap[params.comment_id] || [])
-			refmap[params.comment_id].push(params)
-		}
-		vnode.context.$store.commit('BUILD_REFMAP', refmap)
+		let data = binding.value
+		if (data.on)
+			return
+		vnode.context.$nextTick(() => {
+			if (el.offsetHeight >= data.height) {
+				el.classList.add(data.class)
+				el.style.maxHeight = data.height + 'px'
+			}
+		})
 	}
 }
 
-export default { LinkPreview, CommentPreview, buildRefmap }
+export default { LinkPreview, CommentPreview, CropHighText }

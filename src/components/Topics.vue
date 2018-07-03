@@ -1,67 +1,58 @@
 <template>
-	<main class="content">
-		<div class="container">
-			<hello />
-			
-			<h2 v-if="tagActive">#{{tagActive}}</h2>
-
-			<div class="topic__container" >
-				<template v-if="topicsList">
-					<template v-if="topicsList.items.length > 0">
-						<topic
-							v-for="topic in topicsList.items"
-							:key="topic.id"
-							:topic="topic"
-							:isOpen="false" />
-					</template>
-					<template v-else>
-						<topic-placeholder :loading="loading"/>
-					</template>
+	<section class="content">
+		<div class="topic__container" >
+			<template v-if="topicsList">
+				<h2 v-if="tagActive">#{{ tagActive }}</h2>
+				<template v-if="topicsList.items.length > 0">
+					<topic v-for="topic in topicsList.items"
+						:key="topic.id"
+						:topic="topic"
+						:isOpen="false" />
 				</template>
-
-				<template v-else-if="topicActive">
-					<topic :topic="topicActive" :isOpen="true">
-						<comment
-							slot="comments"
-							v-for="(comment, index) in topicActive.comments"
-							:key="comment.id"
-							:comment="comment"
-							:index="++index" />
-						<comment-form slot="form"/>
-					</topic>
-				</template>
-
 				<template v-else>
 					<topic-placeholder :loading="loading"/>
 				</template>
-			</div>
+			</template>
 
-			<pagination
-				:current="topicsList.current"
-				:total="topicsList.total_pages"
-				:before="topicsList.before"
-				:next="topicsList.next" />
-			<div class="preview"></div>
+			<template v-else-if="topicActive">
+				<topic :topic="topicActive" :isOpen="true">
+					<topic-comments
+						slot="topic-comments"
+						slot-scope="slotProps"
+						:canModerate="slotProps.canModerate"
+						:comments="topicActive.comments"
+						:count="topicActive.countComments"/>
+					<comment-form slot="topic-form"/>
+				</topic>
+			</template>
+
+			<template v-else>
+				<topic-placeholder :loading="loading"/>
+			</template>
 		</div>
-	</main>
+
+		<pagination v-if="topicsList"
+			:current="topicsList.current"
+			:total="topicsList.total_pages"
+			:before="topicsList.before"
+			:next="topicsList.next" />
+	</section>
 </template>
 
 <script>
 	import { mapState } from 'vuex'
-	import Hello from './common/Hello'
-	import Topic from './common/Topic'
-	import TopicPlaceholder from './common/TopicPlaceholder'
-	import Comment from './common/Comment'
-	import CommentForm from './common/CommentForm'
-	import Pagination from './common/Pagination'
+	import Topic from '@/components/common/Topic'
+	import TopicComments from '@/components/common/TopicComments'
+	import TopicPlaceholder from '@/components/common/TopicPlaceholder'
+	import CommentForm from '@/components/common/CommentForm'
+	import Pagination from '@/components/common/Pagination'
 
 	export default {
 		name: 'topics',
 		components: {
-			Hello,
 			Topic,
+			TopicComments,
 			TopicPlaceholder,
-			Comment,
 			CommentForm,
 			Pagination
 		},
@@ -77,7 +68,6 @@
 		computed: {
 			...mapState([
 				'loading',
-				'sortList',
 				'topicsList',
 				'topicActive',
 				'tagsHidden',
@@ -87,12 +77,9 @@
 		methods: {
 			fetchTopics(type, tag, except, limit, page) {
 				this.$store.commit('SET_LOADING', true)
-				this.$store.dispatch('FETCH_TOPICS', [ type, tag, except, limit, page ])
+				this.$store.dispatch('FETCH_TOPICS_LIST', [ type, tag, except, limit, page ])
 				.then(() => {
-					let typeNormal = this.sortList.filter(sort => sort.slug === type)[0]
-					this.titlePage = typeNormal.label
-
-					this.$store.commit('REMOVE_TOPIC')
+					this.titlePage = type
 					this.$store.commit('SET_LOADING', false)
 				})
 				.catch((error) => {
@@ -102,11 +89,9 @@
 			},
 			fetchTopic(topicId) {
 				this.$store.commit('SET_LOADING', true)
-				this.$store.dispatch('FETCH_TOPIC', topicId)
+				this.$store.dispatch('FETCH_TOPIC_ITEM', topicId)
 				.then(() => {
 					this.titlePage = this.topicActive.subject
-
-					this.$store.commit('REMOVE_TOPICS')
 					this.$store.commit('SET_LOADING', false)
 				})
 				.catch((error) => {
@@ -142,9 +127,8 @@
 				)
 		},
 		beforeDestroy() {
-			this.$store.commit('REMOVE_TOPICS')
-			this.$store.commit('REMOVE_TOPIC')
-			this.$store.commit('REMOVE_TAG_ACTIVE')
+			this.$store.commit('REMOVE_TOPIC_ACTIVE')
+			this.$store.commit('REMOVE_TOPICS_LIST')
 		}
 	}
 </script>
