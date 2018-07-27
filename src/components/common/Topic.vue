@@ -81,7 +81,7 @@
 				<div class="u-clearfix"></div>
 
 				<div class="topic__info">
-					<span class="comments" >
+					<span class="comments">
 						<router-link v-if="topic.countComments != 0" :to="{ name: 'topic', params: { topicId: topic.id }, hash:'#comments' }">
 							{{ topic.countComments | ommited }}
 						</router-link>
@@ -104,12 +104,12 @@
 		</div>
 
 		<template v-if="isOpen && !isHidden">
-			<slot name="topic-comments" :canModerate="canModerate"/>
-
-			<slot name="topic-form"/>
-
+			<topic-comments
+				:canModerate="canModerate"
+				:comments="topic.comments"
+				:count="topic.countComments"/>
+	
 			<div class="topic__navigation">
-				<a href="#" class="button button--small" @click="back" @click.prevent.stop>Back</a>
 				<a href="#" class="button button--small" @click="refreshTopic" @click.prevent.stop>Refresh</a>
 			</div>
 		</template>
@@ -122,13 +122,15 @@
 	import hiding from 'board-hiding'
 	import moderation from 'board-moderation'
 	import BusEvents from 'bus-events'
-	import FileBlock from './FileBlock'
-	import TopicSettings from './TopicSettings'
+	import FileBlock from '@/components/common/FileBlock'
+	import TopicSettings from '@/components/common/TopicSettings'
+	import TopicComments from '@/components/common/TopicComments'
 
 	export default {
 		name: 'topic',
 		components: {
-			FileBlock
+			FileBlock,
+			TopicComments
 		},
 		props: ['topic', 'isOpen'],
 		data() {

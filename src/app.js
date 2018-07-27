@@ -1,3 +1,4 @@
+import 'es6-promise/auto'
 import { app } from '@/app/main.js'
 
 // actually mount to DOM

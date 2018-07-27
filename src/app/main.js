@@ -49,26 +49,25 @@ Vue.mixin({
 	}
 })
 
-// loading settings from storage
-if (!settings.loaded) {
-	settings.sync('read', _ => {
-		console.info('[status] Settings loaded')
-	})
-}
+// Services
+console.time('Loading services')
 
-// loading modaration permissions
-if (!moderation.loaded) {
-	moderation.sync('read', _ => {
-		console.info('[status] Moderator permissions loaded')
-	})
-}
+!settings.loaded &&
+settings.sync('read', _ => {
+	console.info('[status] Settings loaded')
+})
 
-// loading hiding rules
-if (!hiding.loaded) {
-	hiding.sync('read', _ => {
-		console.info('[status] Hiding rules loaded')
-	})
-}
+!moderation.loaded &&
+moderation.sync('read', _ => {
+	console.info('[status] Moderator permissions loaded')
+})
+
+!hiding.loaded &&
+hiding.sync('read', _ => {
+	console.info('[status] Hiding rules loaded')
+})
+
+console.timeEnd('Loading services')
 
 // create the app instance.
 // here we inject the router and store to all child components,

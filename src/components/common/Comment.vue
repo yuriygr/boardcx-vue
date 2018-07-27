@@ -1,5 +1,5 @@
 <template>
-	<div class="comment-wrapper">
+	<div class="comment__wrapper">
 		<div class="comment"
 			:id="'comment-' + comment.id"
 			:class="[
@@ -47,19 +47,25 @@
 						</div>
 					</span>
 				</div>
+
+				<div v-if="isTreeHidden" class="comment__tree__expand"><a href="#" @click="toggleHideTree" @click.prevent.stop>Restore tree</a></div>
+
 			</template>
 			<template v-else>
-				<div class="comment__message"><a href="#" @click="toggleHideComment" @click.prevent.stop>Restore</a> Comment #{{ comment.id }} is hidden.</div>
+				<div class="comment__message">Comment #{{ comment.id }} is hidden. <a href="#" @click="toggleHideComment" @click.prevent.stop>Restore</a></div>
 			</template>
 		</div>
-		<div class="comment__replies">
-			<comment
-				v-for="(comment, index) in comment.replies"
-				:key="comment.id"
-				:comment="comment"
-				:index="++index"
-				:canModerate="canModerate" />
-			<div class="comment_replies__subthree"></div>
+		<div class="comment__tree__wrapper" v-if="!isTreeHidden">	
+			<div class="comment__tree" :id="'comment-tree-' + comment.id">
+				<comment
+					v-for="(comment, index) in comment.replies"
+					:key="comment.id"
+					:comment="comment"
+					:index="++index"
+					:canModerate="canModerate"
+					:depth="depth + 1"/>
+			</div>
+			<div class="comment__tree__subthree" @click="toggleHideTree"></div>
 		</div>
 	</div>
 </template>
@@ -68,6 +74,8 @@
 	.comment {
 		position: relative;
 		word-break: break-word;
+		padding: 8px 11px 8px 22px;
+		margin-left: -22px;
 	}
 	.comment--hidden { opacity: .6; font-size: .85rem; }
 	.comment--highlighted { box-shadow: 0px 0px 3px 1px #ffb400; }
@@ -91,12 +99,17 @@
 	.comment__info > span.divide { color: #efefef; }
 	.comment__info > span:last-child { margin-right: 0; }
 	.comment__info > span.reply {
-		color: #1C9BC5;
+		color: #aaa;
 		cursor: pointer;
+		user-select: none;
+	}
+	.comment__info > span.reply:hover {
+		color: #056495;
 	}
 	.comment__info > span.options {
 		position: relative;
 		margin-left: auto;
+		user-select: none;
 	}
 	.comment__info > span.options > span {
 		cursor: pointer;
@@ -107,17 +120,40 @@
 	.comment__info > span.options--open >span { color: #2e3d48; }
 
 
-	.comment__replies {
-		padding-left: 32px;
+	.comment__tree {
+		padding-left: 22px;
 		border-left: 1px dashed #ccc;
+	}
+	.comment__tree__wrapper:hover {
+		position: relative;
+	}
+	.comment__tree__wrapper:hover > .comment__tree__subthree {
+		display: block;
+	}
+	.comment__tree__subthree {
+		display: none;
+		position: absolute;
+		width: 22px;
+		height: 100%;
+		left: 0;
+		top: 0;
+		cursor: pointer;
+	}
+	.comment__tree__subthree:hover {
+   		border-left: 2px solid #ffb400;
+	}
+	.comment__tree__expand {
+		color: #aaa;
+		font-size: .85rem;
+		user-select: none;
 	}
 </style>
 
 <script>
+	import BusEvents from 'bus-events'
 	import hiding from 'board-hiding'
 	import moderation from 'board-moderation'
 	import FileBlock from '@/components/common/FileBlock'
-	import BusEvents from 'bus-events'
 
 	const TIMEOUT_DEFAULT = 3500
 
@@ -126,16 +162,18 @@
 		components: {
 			FileBlock
 		},
-		props: ['comment', 'index', 'canModerate'],
+		props: ['comment', 'index', 'canModerate', 'depth'],
 		data() {
 			return {
 				isHidden: hiding.hidden({ comment_id: this.comment.id }),
-				isHighlighted: false,
+				isTreeHidden: hiding.hidden({ tree_id: this.comment.id }),
 
+				isHighlighted: false,
 				showOptions: false
 			}
 		},
 		created() {
+			document.addEventListener('click', this.documentClick)
 			// Events
 			this.$bus.on(BusEvents.COMMENTS_HIGHLIGHT, (comment_id) => {
 				if (comment_id == this.comment.id) {
@@ -150,6 +188,15 @@
 			toggleOptionsComment() {
 				this.showOptions = !this.showOptions
 			},
+			documentClick(e) {
+				if (this.showOptions) {
+					let el = this.$refs.optionsMenu
+					if (!el) return false
+					let target = e.target
+					if (( el !== target) && !el.contains(target))
+						this.showOptions = false
+				}
+			},
 			toggleHideComment() {
 				if (this.showOptions)
 					this.showOptions = false
@@ -159,16 +206,22 @@
 					hide: this.isHidden ^= true
 				}, _ => {})
 			},
+			toggleHideTree() {
+				hiding.toggle({
+					tree_id: this.comment.id,
+					hide: this.isTreeHidden ^= true
+				}, _ => {})
+			},
 			replyToComment() {
+				this.isTreeHidden = false
 				this.$bus.emit(BusEvents.COMMENTS_REPLY, this.comment)
 			},
 			reportComment() {
 				let reason = prompt('Enter a reason for report:', '')
-				if (reason == null) return true
-				if (!reason) {
-					this.$bus.emit(BusEvents.ALERTS_ERROR, 'You must provide a reason.')
+				if (reason == null)
 					return true
-				}
+				if (!reason) 
+					return this.$bus.emit(BusEvents.ALERTS_ERROR, 'You must provide a reason.')
 
 				let comments_id = this.comment.id
 				let formData = new FormData()
@@ -192,8 +245,8 @@
 					return true
 
 				let formData = new FormData()
+					formData.append('topic_id', this.comment.topics_id)
 					formData.append('comment_id', this.comment.id)
-					formData.append('type', 'comment')
 					formData.append('password', moderation.get(
 						{ topic_id: this.comment.topics_id }
 					).password)
@@ -214,8 +267,8 @@
 					return true
 
 				let formData = new FormData()
+					formData.append('topic_id', this.comment.topics_id)
 					formData.append('comment_id', this.comment.id)
-					formData.append('type', 'comment')
 					formData.append('password', moderation.get(
 						{ topic_id: this.comment.topics_id }
 					).password)
@@ -236,8 +289,8 @@
 					return true
 
 				let formData = new FormData()
+					formData.append('topic_id', this.comment.topics_id)
 					formData.append('comment_id', this.comment.id)
-					formData.append('type', 'comment')
 					formData.append('password', moderation.get(
 						{ topic_id: this.comment.topics_id }
 					).password)
@@ -253,6 +306,9 @@
 					this.$store.commit('SET_LOADING', false)
 				})
 			}
+		},
+		beforeDestroy() {
+			document.removeEventListener('click', this.documentClick)
 		}
 	}
 </script>

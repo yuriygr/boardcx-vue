@@ -1,5 +1,5 @@
 <template>
-	<div class="topic-form">
+	<div class="topic-form" ref="form">
 		<div class="topic-form__container">
 			<div
 				@input="changeContent"
@@ -72,6 +72,7 @@
 		name: 'comment-form',
 		data() {
 			return {
+				parent_id: 0,
 				message: '',
 
 				attachedFiles: [],
@@ -82,7 +83,7 @@
 		},
 		created() {
 			this.$bus.on(BusEvents.COMMENTS_REPLY, (data) => {
-				this.insertReply('>>' + data.id)
+				this.moveForm(this.parent_id = data.id)
 			})
 		},
 		computed: {
@@ -111,6 +112,7 @@
 
 				let formData = new FormData()
 					formData.append('topics_id', this.topic.id)
+					formData.append('parent_id', this.parent_id)
 					formData.append('message', this.message)
 
 				this.attachedFiles.forEach(file =>
@@ -203,15 +205,16 @@
 			},
 
 			resetForm() {
+				this.parent_id = 0
 				this.message = ''
 				this.$refs.content.innerText = ''
 				this.attachedFiles = []
 				this.thumbsFiles = []
 			},
 
-			insertReply(value) {
+			moveForm(parent_id) {
+				document.querySelector('#comment-tree-' + parent_id).appendChild(this.$refs.form)
 				this.$refs.content.focus()
-				document.execCommand('insertHTML', false, value + '<br><br>')
 			},
 
 			onKeyEvent(e) {

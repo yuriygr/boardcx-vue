@@ -15,6 +15,7 @@
 						<option value="burichan">Burichan</option>
 						<option value="futaba">Futaba</option>
 						<option value="kusaba">Kusaba</option>
+						<option value="win95">Windows 95</option>
 						<option value="imgur">Imgur</option>
 					</select>
 					<div class="form__desc">Cool and diverse themes specifically for you.</div>

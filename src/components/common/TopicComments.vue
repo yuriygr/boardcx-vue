@@ -1,28 +1,32 @@
 <template>
 	<div class="topic__comments">
 		<a name="comments" id="comments"></a>
-		<h6 class="topic__comments__title">{{ count | ommited }}</h6>
+		<div class="topic__comments__title">{{ count | ommited }}</div>
 		<div class="topic__comments__container">
-			<template v-for="(comment, index) in comments">
-				<comment
-					:key="comment.id"
-					:comment="comment"
-					:index="++index"
-					:canModerate="canModerate"/>
-			</template>
+			<span v-if="count <= 0">
+				There are no comments
+			</span>
+			<comment v-for="(comment, index) in comments"
+				:key="comment.id"
+				:comment="comment"
+				:index="++index"
+				:canModerate="canModerate"
+				depth="0" />
 		</div>
+		<comment-form />
 	</div>
-
 </template>
 
 <script>
 	import Comment from '@/components/common/Comment'
+	import CommentForm from '@/components/common/CommentForm'
 
 	export default {
 		name: 'topic-comments',
-		props: ['comments', 'count', 'canModerate'],
+		props: [ 'comments', 'count', 'canModerate' ],
 		components: {
-			Comment
+			Comment,
+			CommentForm
 		}
 	}
 </script>

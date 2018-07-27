@@ -27,45 +27,42 @@ export default {
 		}
 	},
 
+	checkType(params) {
+		let value, type
+		if (params.topic_id !== undefined) {
+			value = params.topic_id
+			type = 'topics'
+		}
+		if (params.comment_id !== undefined) {
+			value = params.comment_id
+			type = 'comments'
+		}
+		if (params.tag_slug !== undefined) {
+			value = params.tag_slug
+			type = 'tags'
+		}
+		if (params.tree_id !== undefined) {
+			value = params.tree_id
+			type = 'trees'
+		}
+		return { type, value }
+	},
+
 	/**
 	 * Check for hidden
 	 * @param  {array} params Hidden Object Parameters
 	 * @return {bool} Hidden or not
 	 */
 	hidden(params) {
-		let value, type
-		if (params.topic_id !== undefined) {
-			value = params.topic_id
-			type = 'topics'
-		}
-		if (params.comment_id !== undefined) {
-			value = params.comment_id
-			type = 'comments'
-		}
-		if (params.tag_slug !== undefined) {
-			value = params.tag_slug
-			type = 'tags'
-		}
+		let { type, value } = this.checkType(params)
+
 		return this._hidden[type].indexOf(value) != -1
 	},
 
 	toggle(params, callback) {
-		let value, type
-		if (params.topic_id !== undefined) {
-			value = params.topic_id
-			type = 'topics'
-		}
-		if (params.comment_id !== undefined) {
-			value = params.comment_id
-			type = 'comments'
-		}
-		if (params.tag_slug !== undefined) {
-			value = params.tag_slug
-			type = 'tags'
-		}
+		let { type, value } = this.checkType(params)
 
 		let hide = params.hide
-
 		if (hide)
 			this._hidden[type].push(value)
 		else

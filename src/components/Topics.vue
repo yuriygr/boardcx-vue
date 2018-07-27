@@ -3,27 +3,21 @@
 		<div class="topic__container" >
 			<template v-if="topicsList">
 				<h2 v-if="tagActive">#{{ tagActive }}</h2>
+
 				<template v-if="topicsList.items.length > 0">
 					<topic v-for="topic in topicsList.items"
 						:key="topic.id"
 						:topic="topic"
 						:isOpen="false" />
 				</template>
+
 				<template v-else>
-					<topic-placeholder :loading="loading"/>
+					<topic-placeholder />
 				</template>
 			</template>
 
 			<template v-else-if="topicActive">
-				<topic :topic="topicActive" :isOpen="true">
-					<topic-comments
-						slot="topic-comments"
-						slot-scope="slotProps"
-						:canModerate="slotProps.canModerate"
-						:comments="topicActive.comments"
-						:count="topicActive.countComments"/>
-					<comment-form slot="topic-form"/>
-				</topic>
+				<topic :topic="topicActive" :isOpen="true" />
 			</template>
 
 			<template v-else>
@@ -37,23 +31,19 @@
 			:before="topicsList.before"
 			:next="topicsList.next" />
 	</section>
-</template>
+</template> 
 
 <script>
 	import { mapState } from 'vuex'
 	import Topic from '@/components/common/Topic'
-	import TopicComments from '@/components/common/TopicComments'
 	import TopicPlaceholder from '@/components/common/TopicPlaceholder'
-	import CommentForm from '@/components/common/CommentForm'
 	import Pagination from '@/components/common/Pagination'
 
 	export default {
 		name: 'topics',
 		components: {
 			Topic,
-			TopicComments,
 			TopicPlaceholder,
-			CommentForm,
 			Pagination
 		},
 		data() {
@@ -75,6 +65,18 @@
 			])
 		},
 		methods: {
+			fetchBy(source) {
+				if (source.params.topicId)
+					this.fetchTopic(source.params.topicId)
+				else
+					this.fetchTopics(
+						source.name,
+						source.query.tag,
+						this.tagsHidden.join(),
+						source.query.limit,
+						source.query.page
+					)
+			},
 			fetchTopics(type, tag, except, limit, page) {
 				this.$store.commit('SET_LOADING', true)
 				this.$store.dispatch('FETCH_TOPICS_LIST', [ type, tag, except, limit, page ])
@@ -83,7 +85,6 @@
 					this.$store.commit('SET_LOADING', false)
 				})
 				.catch((error) => {
-					this.$router.replace({ name: 'page-error', params: { error } })
 					this.$store.commit('SET_LOADING', false)
 				})
 			},
@@ -95,36 +96,18 @@
 					this.$store.commit('SET_LOADING', false)
 				})
 				.catch((error) => {
-					this.$router.replace({ name: 'page-error', params: { error } })
+					this.titlePage = "Error"
 					this.$store.commit('SET_LOADING', false)
 				})
 			}
 		},
 		watch: {
 			$route(to) {
-				if (to.params.topicId)
-					this.fetchTopic(to.params.topicId)
-				else
-					this.fetchTopics(
-						to.name,
-						to.query.tag,
-						this.tagsHidden.join(),
-						to.query.limit,
-						to.query.page
-					)
+				this.fetchBy(to)
 			}
 		},
 		mounted() {
-			if (this.$route.params.topicId)
-				this.fetchTopic(this.$route.params.topicId)
-			else
-				this.fetchTopics(
-					this.$route.name,
-					this.$route.query.tag,
-					this.tagsHidden.join(),
-					this.$route.query.limit,
-					this.$route.query.page
-				)
+			this.fetchBy(this.$route)
 		},
 		beforeDestroy() {
 			this.$store.commit('REMOVE_TOPIC_ACTIVE')

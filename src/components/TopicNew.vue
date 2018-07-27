@@ -53,7 +53,7 @@
 					</div>
 				</div>
 
-				<div class="form__group">
+				<div class="form__group form__group--required">
 					<label class="form__label" for="tags">Tags</label>
 					<input-tags :tags.sync="tags" :tagsList="tagsList"></input-tags>
 					<div class="form__desc">Just select from 1 to 4 tags by clicking on it</div>

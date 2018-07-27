@@ -6,7 +6,7 @@ Vue.use(Vuex)
 
 const state = {
 	name: 'board.cx',
-	version: '2.0.3',
+	version: '2.0.10(ß)',
 	loading: false,
 
 	sortList: [

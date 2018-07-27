@@ -329,8 +329,10 @@ aside {
 	background-color: #fff;
 	border-radius: .25rem;
 	text-align: left;
+	border: 1px solid rgba(149, 156, 163, 0.3);
 	box-shadow: 0 0.0005rem 0.1rem 0 rgba(149, 156, 163, 0.15),
 				0 2px 15px 0 rgba(149, 156, 163, 0.15);
+
 }
 .options-menu:hover {
 	box-shadow: 0 0.0005rem 0.1rem 0 rgba(149, 156, 163, 0.2),
@@ -344,12 +346,12 @@ aside {
 	background: #fff;
 	transform: rotate(45deg);
 	right: 34px;
-	border-top: 1px solid #efefef;
-	border-left: 1px solid #efefef;
+	border-top: 1px solid rgba(149, 156, 163, 0.3);
+	border-left: 1px solid rgba(149, 156, 163, 0.3);
 	top: -6px;
 }
 .options-menu > span { display: block; }
-.options-menu > span.divide { border-top: 1px solid #efefef; margin: .25rem 0; }
+.options-menu > span.divide { border-top: 1px solid rgba(149, 156, 163, 0.3); margin: .25rem 0; }
 .options-menu > span > a {
 	display: block;
 	white-space: nowrap;
@@ -475,7 +477,6 @@ aside {
  * Footer
  */
 footer {
-	z-index: 100;
 	padding: 1rem;
 	width: 100%;
 
@@ -629,8 +630,7 @@ textarea:hover, textarea:focus {background-color: #fefefe;border-color: #CACACA;
 
 
 .topic-form {
-	background-color: #ffffff;
-	box-shadow: 0px 0px 2px #d4d4d4, 1px 1px 1px #e4e4e4;
+	background-color: #eaeaea;
 	border-radius: 5px;
 	margin: 0 0 .5rem 0;
 	overflow: hidden;
@@ -672,7 +672,7 @@ textarea:hover, textarea:focus {background-color: #fefefe;border-color: #CACACA;
 }
 .topic-form__actions {
 	padding: .5rem;
-	background: #fcfbfa;
+	background: #eaeaea;
 }
 .topic-form__thumbs {
 	display: flex;
@@ -829,6 +829,10 @@ textarea:hover, textarea:focus {background-color: #fefefe;border-color: #CACACA;
 .app--burichan .list__item--divide { border-color: #292929; }
 .app--burichan .button--action { background: #9988EE; border-color: #9988EE; color: #000; }
 
+@media only screen and (min-width: 1440px) {
+	html, body { font-size: 16px; }
+	.container { max-width: 1440px; }
+}
 
 @media only screen and (max-width: 1050px) {
 	.topic,
@@ -841,4 +845,12 @@ textarea:hover, textarea:focus {background-color: #fefefe;border-color: #CACACA;
 	.page__content {
 		border-radius: 0;
 	}
+}
+
+@media only screen and (max-width: 767px) {
+	html, body { font-size: 14px; }
+	.topic,
+	.topic__comments { border-radius: 0; }
+	aside { display: none; }
+	.page__content { border-radius: 0; }
 }
