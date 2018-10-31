@@ -29,7 +29,8 @@
 	.app--ihateroundedborders .topic,
 	.app--ihateroundedborders .topic__comments,
 	.app--ihateroundedborders .page__content,
-	.app--ihateroundedborders .aside__block { border-radius: 0; }
+	.app--ihateroundedborders .aside__block,
+	.app--ihateroundedborders .comment { border-radius: 0; }
 
 	.app--remove-hidden .topic--hidden { display: none; }
 
@@ -90,17 +91,6 @@
 			...mapState([
 				'loading',
 			])
-		},
-		methods: {
-			scrollUp() {
-				window.scrollTo(0, 0)
-			},
-			scrollDown() {
-				window.scrollTo(0, document.body.scrollHeight)
-			}
-		},
-		mounted() {
-			this.$store.dispatch('FETCH_TAGS_LIST')
 		}
 	}
 </script>

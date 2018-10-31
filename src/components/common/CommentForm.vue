@@ -70,17 +70,15 @@
 
 	export default {
 		name: 'comment-form',
-		data() {
-			return {
-				parent_id: 0,
-				message: '',
+		data: () => ({
+			parent_id: 0,
+			message: '',
 
-				attachedFiles: [],
-				thumbsFiles: [],
-				allowedFiles: ['image/gif', 'image/jpeg', 'image/jpg', 'image/png'],
-				limitFiles: 3
-			}
-		},
+			attachedFiles: [],
+			thumbsFiles: [],
+			allowedFiles: ['image/gif', 'image/jpeg', 'image/jpg', 'image/png'],
+			limitFiles: 3
+		}),
 		created() {
 			this.$bus.on(BusEvents.COMMENTS_REPLY, (data) => {
 				this.moveForm(this.parent_id = data.id)
@@ -213,7 +211,9 @@
 			},
 
 			moveForm(parent_id) {
-				document.querySelector('#comment-tree-' + parent_id).appendChild(this.$refs.form)
+				if (parent_id != 0) {
+ 					document.querySelector('#comment-tree-' + parent_id).prepend(this.$refs.form)
+				}
 				this.$refs.content.focus()
 			},
 

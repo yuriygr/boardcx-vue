@@ -94,8 +94,9 @@
 </template>
 
 <script>
-	import { mapState, mapGetters } from 'vuex'
+	import { mapState } from 'vuex'
 	import hiding from 'board-hiding'
+	import BusEvents from 'bus-events'
 
 	export default {
 		name: 'app-sidebar',
@@ -117,6 +118,9 @@
 			}
 		},
 		created() {},
+		mounted() {
+			this.$store.dispatch('FETCH_TAGS_LIST')
+		},
 		methods: {
 			hasActiveTag() {
 				return this.tagActive
@@ -134,17 +138,23 @@
 				this.$router.push({ name: this.$route.name, query: query })
 			},
 			showTag(tag) {
-				hiding.toggle({ tag_slug: tag.slug, hide: false }, _ => {})
-				this.$store.commit('UNHIDE_TAG', tag)
+				hiding.toggle({ tag_slug: tag.slug, hide: false }, _ => {
+					this.$store.commit('UNHIDE_TAG', tag)
+					this.$bus.emit(BusEvents.ALERTS_INFO, 'Need to refresh page')	
+				})
 			},
 			hideTag(tag) {
-				hiding.toggle({ tag_slug: tag.slug, hide: true }, _ => {})
-				this.$store.commit('HIDE_TAG', tag)
+				hiding.toggle({ tag_slug: tag.slug, hide: true }, _ => {
+					this.$store.commit('HIDE_TAG', tag)
+					this.$bus.emit(BusEvents.ALERTS_INFO, 'Need to refresh page')	
+				})
 			},
 			resetTags() {
-				this.resetActiveTags()
-				this.$store.commit('RESET_HIDE_TAGS')
-				hiding.reset('tags', _ => {})
+				hiding.reset('tags', _ => {
+					this.resetActiveTags()
+					this.$store.commit('RESET_HIDE_TAGS')
+					this.$bus.emit(BusEvents.ALERTS_INFO, 'Need to refresh page')	
+				})
 			},
 			scrollTop() {
 				window.scrollTo(0, 0)

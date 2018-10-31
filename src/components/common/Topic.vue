@@ -14,7 +14,7 @@
 					</span>
 					<span class="tags" v-if="topic.tags.length > 0">
 						<template  v-for="(tag, index) in topic.tags">
-							<router-link :to="{ name: (!isOpen ? $route.name : 'hot'), query: { tag: tag.slug } }" :key="index">#{{ tag.title }}</router-link><template v-if="index != topic.tags.length - 1">, </template>
+							<router-link :to="{ name: (!isOpen ? $route.name : 'hot'), query: { tag: tag.slug } }" :key="tag.slug">#{{ tag.title }}</router-link><template v-if="index != topic.tags.length - 1">, </template>
 						</template>
 					</span>
 					<span class="options" :class="{ 'options--open': showOptions }" @click="toggleOptionsTopic">
@@ -57,7 +57,7 @@
 				</div>
 
 				<h4 class="topic__title" v-if="topic.subject">
-					<router-link class="topic__title__link" :to="{ name: 'topic', params: { topicId: topic.id } }">
+					<router-link class="topic__title__link" :to="{ name: 'topic', params: { topicId: topic.id } }" :key="topic.id">
 						{{ topic.subject }}
 					</router-link>
 				</h4>
@@ -69,19 +69,19 @@
 						:key="index" />
 				</div>
 
-				<div
-					class="topic__message"
+				<div class="topic__message"
 					v-crop-high-text="{
 						'on': isOpen,
 						'height': 150,
 						'class': 'topic__message--cutted'
 					}"
-					v-html="topic.message"></div>
+					v-html="topic.message">
+				</div>
 
 				<div class="u-clearfix"></div>
 
 				<div class="topic__info">
-					<span class="comments">
+					<span class="comments" id="comments">
 						<router-link v-if="topic.countComments != 0" :to="{ name: 'topic', params: { topicId: topic.id }, hash:'#comments' }">
 							{{ topic.countComments | ommited }}
 						</router-link>
@@ -105,9 +105,9 @@
 
 		<template v-if="isOpen && !isHidden">
 			<topic-comments
+				:topic_id="topic.id"
 				:canModerate="canModerate"
-				:comments="topic.comments"
-				:count="topic.countComments"/>
+				:comments="topic.comments"/>
 	
 			<div class="topic__navigation">
 				<a href="#" class="button button--small" @click="refreshTopic" @click.prevent.stop>Refresh</a>
@@ -143,6 +143,7 @@
 		},
 		created() {
 			document.addEventListener('click', this.documentClick)
+			document.addEventListener('keyup', this.documentKeyup)
 			// Events
 			if (this.isOpen == true) {
 				this.$bus.on(BusEvents.FORM_SUBMIT, () => {
@@ -160,6 +161,12 @@
 					if (!el) return false
 					let target = e.target
 					if (( el !== target) && !el.contains(target))
+						this.showOptions = false
+				}
+			},
+			documentKeyup(e) {
+				if (this.showOptions) {
+					if (e.keyCode === 27)
 						this.showOptions = false
 				}
 			},
@@ -308,6 +315,7 @@
 		},
 		beforeDestroy() {
 			document.removeEventListener('click', this.documentClick)
+			document.removeEventListener('keyup', this.documentKeyup)
 			if (this.isOpen == true) {
 				// Отписались от эвентов
 				this.$bus.off(BusEvents.FORM_SUBMIT)

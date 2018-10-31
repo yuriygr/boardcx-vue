@@ -51,6 +51,9 @@ const topics = {
 }
 
 const comments = {
+	list(params) {
+		return instance.get('comments.list', { params })
+	},
 	item(params) {
 		return instance.get('comments.item', { params })
 	},

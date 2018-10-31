@@ -6,7 +6,7 @@ Vue.use(Vuex)
 
 const state = {
 	name: 'board.cx',
-	version: '2.0.10(ß)',
+	version: '2.0.13(ß)',
 	loading: false,
 
 	sortList: [
@@ -65,12 +65,9 @@ const mutations = {
 
 	// Refresh topic
 	REFRESH_TOPIC (state, payload) {
-		state.topicActive.comments.push(...payload.comments_data)
-		state.topicActive.countComments = state.topicActive.comments.length
-	},
-	CHANGE_TOPIC_BUMP (state, payload) {
-		let last_comment_index = payload.comments_data.length - 1
-		state.topicActive.bump = payload.comments_data[last_comment_index].timestamp
+		state.topicActive.bump = payload.topic_data.bump
+		state.topicActive.comments.push(...payload.topic_data.comments)
+		state.topicActive.countComments = payload.topic_data.countComments
 	},
 
 	// Comments
@@ -103,7 +100,7 @@ const mutations = {
 
 	// Tags
 	SET_TAG_ACTIVE(state, payload) {
-		state.tagActive = payload
+		state.tagActive = payload.tag
 	},
 	REMOVE_TAG_ACTIVE(state) {
 		state.tagActive = false
@@ -150,7 +147,7 @@ const actions = {
 				commit('REMOVE_TOPIC_ACTIVE')
 
 			if (tag)
-				commit('SET_TAG_ACTIVE', tag)
+				commit('SET_TAG_ACTIVE', { tag })
 
 			commit('SET_TOPICS_LIST', { topics_data })
 			return topics_data
@@ -168,12 +165,9 @@ const actions = {
 	},
 	REFRESH_TOPIC ({ commit }, [topic_id, after_id]) {
 		return api.topics.refresh({ topic_id, after_id })
-		.then((comments_data) => {
-			if (comments_data.length > 0) {
-				commit('REFRESH_TOPIC', { comments_data })
-				commit('CHANGE_TOPIC_BUMP', { comments_data })
-			}
-			return comments_data
+		.then((topic_data) => {
+			commit('REFRESH_TOPIC', { topic_data })
+			return topic_data
 		})
 	},
 	LIKE_TOPIC ({ commit }, topic_id) {
@@ -196,7 +190,7 @@ const actions = {
 		return api.gallery.list({ tag, except, limit, page })
 		.then((gallery_data) => {
 			if (tag)
-				commit('SET_TAG_ACTIVE', tag)
+				commit('SET_TAG_ACTIVE', { tag })
 
 			commit('SET_GALLERY_LIST', { gallery_data })
 			return gallery_data

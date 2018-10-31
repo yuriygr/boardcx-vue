@@ -188,7 +188,7 @@ aside {
 }
 .list__item > a {
 	display: block;
-	padding: .3rem 1rem;
+	padding: .1rem 1rem;
 	flex: 1 1 100%;
 	color: #2e3d48;
 	border-radius: .25rem;
@@ -208,7 +208,7 @@ aside {
 
 .list__item__meta {
 	display: block;
-	padding: .3rem 1rem;
+	padding: .1rem 1rem;
 	color: #2e3d48;
 	border-radius: 3px;
 	cursor: pointer;
@@ -317,7 +317,7 @@ aside {
 	font-size: 17px;
 	line-height: 19px;
 }
-.topic__meta > span.options--open >span { color: #2e3d48; }
+.topic__meta > span.options--open > span { color: #2e3d48; }
 
 .options-menu {
 	position: absolute;
@@ -413,26 +413,6 @@ aside {
 .topic__info > span:last-child { margin-right: 0; }
 .topic__info > span.divide { color: #efefef; }
 .topic__info > span.state { margin-left: auto; }
-
-.topic__comments {
-	background: #fff;
-	position: relative;
-	border-radius: .25rem;
-	box-shadow: 0 0.0005rem 0.1rem 0 rgba(149, 156, 163, 0.15),
-				0 2px 15px 0 rgba(149, 156, 163, 0.15);
-}
-.topic__comments:hover {
-	box-shadow: 0 0.0005rem 0.1rem 0 rgba(149, 156, 163, 0.2),
-				0 2px 15px 0 rgba(149, 156, 163, 0.2);
-}
-.topic__comments__title {
-	padding: 1rem 1.5rem;
-	border-bottom: 1px solid #efefef;
-	margin: 0;
-}
-.topic__comments__container {
-	padding: 1rem 1.5rem;
-}
 
 .topic__navigation {
 	margin: 0 0 .5rem 0;
@@ -630,10 +610,12 @@ textarea:hover, textarea:focus {background-color: #fefefe;border-color: #CACACA;
 
 
 .topic-form {
-	background-color: #eaeaea;
+	background-color: #ffffff;
 	border-radius: 5px;
 	margin: 0 0 .5rem 0;
 	overflow: hidden;
+	box-shadow: 0 0.0005rem 0.1rem 0 rgba(149, 156, 163, 0.15),
+				0 2px 15px 0 rgba(149, 156, 163, 0.15);
 }
 .topic-form__container {
 	padding: .5rem;
@@ -644,10 +626,10 @@ textarea:hover, textarea:focus {background-color: #fefefe;border-color: #CACACA;
 }
 .topic-form__content {
 	outline: 0;
-	min-height: 45px;
+	min-height: 3rem;
 	width: 100%;
 	resize: none;
-	max-height: 170px;
+	max-height: 9rem;
 	overflow-y: auto;
 	overflow-x: hidden;
 	line-height: 1.4;
@@ -672,7 +654,7 @@ textarea:hover, textarea:focus {background-color: #fefefe;border-color: #CACACA;
 }
 .topic-form__actions {
 	padding: .5rem;
-	background: #eaeaea;
+	background: #fafafa;
 }
 .topic-form__thumbs {
 	display: flex;

@@ -4,9 +4,30 @@
 			:id="'comment-' + comment.id"
 			:class="[
 				{'comment--highlighted' : isHighlighted },
-				{'comment--hidden': isHidden }
+				{'comment--hidden': isHidden },
+				{'comment--deleted': comment.isDeleted },
+				{'comment--new': isNew }
 			]">
-			<template v-if="!isHidden">
+			<template v-if="isHidden">
+				<div class="comment__message">Comment #{{ comment.id }} is hidden.</div>
+				<div class="u-clearfix"></div>
+				<div class="comment__info">
+					<span v-if="isTreeHidden" class="expand_tree" @click="toggleHideTree">Restore tree</span>
+					<span v-if="isTreeHidden" class="divide">|</span>
+					<span class="time">{{ comment.timestamp | timeFormat }}</span>
+					<span class="restore" @click="toggleHideComment">Restore</span>
+				</div>
+			</template>
+			<template v-else-if="comment.isDeleted">
+				<div class="comment__message">Comment #{{ comment.id }} is deleted.</div>
+				<div class="u-clearfix"></div>
+				<div class="comment__info">
+					<span v-if="isTreeHidden" class="expand_tree" @click="toggleHideTree">Restore tree</span>
+					<span v-if="isTreeHidden" class="divide">|</span>
+					<span class="time">{{ comment.timestamp | timeFormat }}</span>
+				</div>
+			</template>
+			<template v-else>
 				<div class="comment__files u-left" v-if="comment.files.length > 0">
 					<file-block
 						v-for="(file, index) in comment.files"
@@ -21,6 +42,8 @@
 				<div class="u-clearfix"></div>
 
 				<div class="comment__info">
+					<span v-if="isTreeHidden" class="expand_tree" @click="toggleHideTree">Restore tree</span>
+					<span v-if="isTreeHidden" class="divide">|</span>
 					<span class="reply" @click="replyToComment" @click.prevent.stop>Reply</span>
 					<span class="time">{{ comment.timestamp | timeFormat }}</span>
 					<span class="options" :class="{ 'options--open': showOptions }" @click="toggleOptionsComment">
@@ -47,15 +70,10 @@
 						</div>
 					</span>
 				</div>
-
-				<div v-if="isTreeHidden" class="comment__tree__expand"><a href="#" @click="toggleHideTree" @click.prevent.stop>Restore tree</a></div>
-
-			</template>
-			<template v-else>
-				<div class="comment__message">Comment #{{ comment.id }} is hidden. <a href="#" @click="toggleHideComment" @click.prevent.stop>Restore</a></div>
 			</template>
 		</div>
-		<div class="comment__tree__wrapper" v-if="!isTreeHidden">	
+		
+		<div v-if="!isTreeHidden" class="comment__tree__wrapper">	
 			<div class="comment__tree" :id="'comment-tree-' + comment.id">
 				<comment
 					v-for="(comment, index) in comment.replies"
@@ -74,36 +92,47 @@
 	.comment {
 		position: relative;
 		word-break: break-word;
-		padding: 8px 11px 8px 22px;
-		margin-left: -22px;
+		padding: .2rem .85rem;
+		background: #fff;
+		border-radius: 5px;
+		margin: 12px 0;
+		box-shadow: 0 0.0005rem 0.1rem 0 rgba(149, 156, 163, 0.15),
+					0 2px 15px 0 rgba(149, 156, 163, 0.15);
 	}
-	.comment--hidden { opacity: .6; font-size: .85rem; }
+	.comment--hidden, .comment--deleted { opacity: .45; }
+	.comment--deleted .comment__message,
+	.comment--hidden .comment__message { font-size: .85rem; }
 	.comment--highlighted { box-shadow: 0px 0px 3px 1px #ffb400; }
+	.comment--new { background: #fff4d3; }
 	/* Posr File */
 	.comment__files {
 		display: inline-block;
 		vertical-align: top;
-		margin: .5rem .5rem 0 .5rem;
+		margin: .5rem .5rem 0 0;
 	}
 	.comment__message {
-		padding: .5rem 0 .2rem;
+		margin: .5rem 0 .2rem;
 		line-height: 1.4;
 		word-break: break-word;
 	}
 	.comment__info {
 		color: #aaa;
 		font-size: .85rem;
-		padding: .2rem 0 .5rem;
+		margin: .2rem 0 .2rem;
 	}
 	.comment__info > span { margin-right: .5rem; }
 	.comment__info > span.divide { color: #efefef; }
 	.comment__info > span:last-child { margin-right: 0; }
-	.comment__info > span.reply {
-		color: #aaa;
+	.comment__info > span.reply,
+	.comment__info > span.restore, 
+	.comment__info > span.expand_tree {
+		color: #1C9BC5;
 		cursor: pointer;
 		user-select: none;
 	}
-	.comment__info > span.reply:hover {
+	.comment__info > span.reply:hover,
+	.comment__info > span.restore:hover,
+	.comment__info > span.expand_tree:hover {
 		color: #056495;
 	}
 	.comment__info > span.options {
@@ -121,7 +150,8 @@
 
 
 	.comment__tree {
-		padding-left: 22px;
+		padding-left: 20px;
+    	margin-left: 15px;
 		border-left: 1px dashed #ccc;
 	}
 	.comment__tree__wrapper:hover {
@@ -133,19 +163,15 @@
 	.comment__tree__subthree {
 		display: none;
 		position: absolute;
-		width: 22px;
+		width: 20px;
 		height: 100%;
 		left: 0;
 		top: 0;
 		cursor: pointer;
+		margin-left: 15px;
 	}
 	.comment__tree__subthree:hover {
    		border-left: 2px solid #ffb400;
-	}
-	.comment__tree__expand {
-		color: #aaa;
-		font-size: .85rem;
-		user-select: none;
 	}
 </style>
 
@@ -169,6 +195,7 @@
 				isTreeHidden: hiding.hidden({ tree_id: this.comment.id }),
 
 				isHighlighted: false,
+				isNew: true,
 				showOptions: false
 			}
 		},
@@ -184,9 +211,16 @@
 				}
 			})
 		},
+		mounted() {
+			this.$el.querySelector('#comment-' + this.comment.id).addEventListener('mouseover', this.hoverEvent)
+		},
 		methods: {
 			toggleOptionsComment() {
 				this.showOptions = !this.showOptions
+			},
+			hoverEvent(e) {
+				if (this.isNew)
+					this.isNew = false
 			},
 			documentClick(e) {
 				if (this.showOptions) {
@@ -214,9 +248,14 @@
 			},
 			replyToComment() {
 				this.isTreeHidden = false
-				this.$bus.emit(BusEvents.COMMENTS_REPLY, this.comment)
+				this.$nextTick(() => {
+					this.$bus.emit(BusEvents.COMMENTS_REPLY, this.comment)
+				})
 			},
 			reportComment() {
+				if (this.showOptions)
+					this.showOptions = false
+
 				let reason = prompt('Enter a reason for report:', '')
 				if (reason == null)
 					return true
@@ -309,6 +348,7 @@
 		},
 		beforeDestroy() {
 			document.removeEventListener('click', this.documentClick)
+			this.$el.querySelector('#comment-' + this.comment.id).removeEventListener('mouseover', this.hoverEvent)
 		}
 	}
 </script>
